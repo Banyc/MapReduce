@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26124.0
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{901F9898-3432-4586-886B-C6D460366EA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapReduce.Master", "src\MapReduce.Master\MapReduce.Master.csproj", "{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapReduce.Worker", "src\MapReduce.Worker\MapReduce.Worker.csproj", "{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Debug|x64.Build.0 = Debug|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Debug|x86.Build.0 = Debug|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Release|x64.ActiveCfg = Release|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Release|x64.Build.0 = Release|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Release|x86.ActiveCfg = Release|Any CPU
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D}.Release|x86.Build.0 = Release|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Debug|x64.Build.0 = Debug|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Debug|x86.Build.0 = Debug|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Release|x64.ActiveCfg = Release|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Release|x64.Build.0 = Release|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Release|x86.ActiveCfg = Release|Any CPU
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C890BE89-1DAA-4FFA-AC14-9B3F1382252D} = {901F9898-3432-4586-886B-C6D460366EA6}
+		{D4BC3BC1-6854-4DE0-99A6-85C4D97DAE88} = {901F9898-3432-4586-886B-C6D460366EA6}
+	EndGlobalSection
+EndGlobal

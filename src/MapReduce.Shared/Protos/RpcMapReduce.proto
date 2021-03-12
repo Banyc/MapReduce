@@ -1,0 +1,51 @@
+// Create a Proto folder and keep there this greet.proto file
+syntax = "proto3";
+
+option csharp_namespace = "MapReduce.Shared";
+
+package RpcMapReduce;
+
+// workers -> master
+
+// service definition
+service RpcMapReduceService {
+    rpc AskForTask (WorkerInfoDto) returns (TaskInfoDto);
+    rpc MapDone (MapOutputInfoDto) returns (Empty);
+    rpc ReduceDone (ReduceOutputInfoDto) returns (Empty);
+    // send current state to master
+    rpc HeartBeat (WorkerInfoDto) returns (Empty);
+}
+
+message WorkerInfoDto {
+    string workerUuid = 1;
+}
+
+message MapOutputInfoDto {
+    WorkerInfoDto workerInfo = 1;
+    int32 taskId = 2;
+    // partitions
+    repeated FileInfoDto fileInfos = 3;
+}
+
+message ReduceOutputInfoDto {
+    WorkerInfoDto workerInfo = 1;
+    int32 taskId = 2;
+    FileInfoDto fileInfo = 3;
+}
+
+message TaskInfoDto {
+    int32 taskId = 1;
+    int32 taskType = 2;
+    repeated FileInfoDto fileInfos = 3;
+}
+
+// map_reduce file info
+message FileInfoDto {
+    int32 partitionIndex = 1;
+    string filePath = 2;
+    int32 fileSize = 3;
+}
+
+message Empty {
+
+}
