@@ -48,8 +48,12 @@ namespace MapReduce.Worker.Helpers
             return mappings;
         }
 
-        public async Task StartAsync(Dictionary<TKey, List<TValue>> mappings, int taskId, int partitionIndex)
+        public async Task StartAsync(List<string> intermediateFilePaths, int taskId, int partitionIndex)
         {
+            // read intermediates from files
+            var mappings = await ReadMappingsAsync(intermediateFilePaths).ConfigureAwait(false);
+
+            // reduce
             Dictionary<TKey, TValue> reduced = new();
             foreach (var keyValues in mappings)
             {
@@ -57,19 +61,15 @@ namespace MapReduce.Worker.Helpers
                 reduced[keyValues.Key] = reducedValue;
             }
 
-            // save
+            // save intermediate to file
             FileInfoDto fileInfo = new();
-
             string tempFileName = $"mr-{taskId}-{partitionIndex}";
             using var tempFileStream = File.OpenWrite(tempFileName);
-            // using var sw = new StreamWriter(tempFileStream);
-            // string json = System.Text.Json.JsonSerializer.Serialize(reduced);
-            // await sw.WriteAsync(json);
             await System.Text.Json.JsonSerializer.SerializeAsync(tempFileStream, reduced).ConfigureAwait(false);
             fileInfo.FileSize = (int)tempFileStream.Length;
             fileInfo.FilePath = tempFileStream.Name;
 
-            // report
+            // report to master
             var grpcClient = MRGrpcClientFactory.CreateMRGrpcClient();
             await grpcClient.ReduceDoneAsync(new() {
                 FileInfo = fileInfo,

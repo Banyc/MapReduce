@@ -1,4 +1,3 @@
-// Create a Proto folder and keep there this greet.proto file
 syntax = "proto3";
 
 option csharp_namespace = "MapReduce.Shared";
@@ -36,7 +35,12 @@ message ReduceOutputInfoDto {
 message TaskInfoDto {
     int32 taskId = 1;
     int32 taskType = 2;
-    repeated FileInfoDto fileInfos = 3;
+    // map task
+    FileInfoDto inputFileInfo = 3;
+    int32 reduceTaskCount = 4;
+    // reduce task
+    repeated FileInfoDto intermediateFilesInfos = 5;
+    int32 partitionIndex = 6;
 }
 
 // map_reduce file info

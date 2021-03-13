@@ -41,14 +41,16 @@ namespace MapReduce.Master.Helpers
 
         public TaskInfoDto AssignTask(WorkerInfoDto workerInfoDto)
         {
-            WorkerInfo workerInfo = _workers.FirstOrDefault(xxxx => xxxx.WorkerUuid == workerInfoDto.WorkerUuid);
+            WorkerInfo workerInfo = _workers.Find(xxxx => xxxx.WorkerUuid == workerInfoDto.WorkerUuid);
             if (workerInfo == null)
             {
                 return null;
             }
             _biggestTaskId++;
+            // assign DTO with info
             TaskInfoDto taskInfoDto = new();
             taskInfoDto.TaskId = _biggestTaskId;
+            taskInfoDto.ReduceTaskCount = _reduceTasks.Count;
             // if map not done
             if (!_mapTasks.All(xxxx => xxxx.IsTaskCompleted))
             {
@@ -64,7 +66,7 @@ namespace MapReduce.Master.Helpers
                     FilePath = mapTask.AssignedFile.FullName,
                     FileSize = (int)mapTask.AssignedFile.Length
                 };
-                taskInfoDto.FileInfos.Add(fileInfoDto);
+                taskInfoDto.InputFileInfo = fileInfoDto;
             }
             else if (!_reduceTasks.All(xxxx => xxxx.IsTaskCompleted))
             {
@@ -91,8 +93,10 @@ namespace MapReduce.Master.Helpers
                         FileSize = assignedFile.FileSize,
                         PartitionIndex = assignedFile.PartitionIndex
                     };
-                    taskInfoDto.FileInfos.Add(fileInfoDto);
+                    taskInfoDto.IntermediateFilesInfos.Add(fileInfoDto);
                 }
+                // assign DTO with partition index
+                taskInfoDto.PartitionIndex = partitionIndex;
             }
             else
             {

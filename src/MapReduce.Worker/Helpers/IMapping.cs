@@ -1,8 +1,11 @@
+using System.IO;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace MapReduce.Worker.Helpers
 {
-    public interface IMapping<TInput, TKey, TValue>
+    public interface IMapping<TKey, TValue>
     {
-        IList<(TKey, TValue)> Map(TInput input);
+        Task<IList<(TKey, TValue)>> MapAsync(FileStream inputFile);
     }
 }
