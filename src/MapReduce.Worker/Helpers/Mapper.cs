@@ -13,14 +13,18 @@ namespace MapReduce.Worker.Helpers
         private readonly IMapping<TKey, TValue> _mappingPhase;
         private readonly IPartitioning<TKey, TValue> _partitioningPhase;
         private readonly WorkerSettings _settings;
-        private readonly RpcMapReduceService.RpcMapReduceServiceClient _grpcClient;
+        private readonly RpcMapReduceService.RpcMapReduceServiceClient _rpcClient;
 
-        public Mapper(IMapping<TKey, TValue> mappingPhase, IPartitioning<TKey, TValue> partitioningPhase, WorkerSettings settings)
+        public Mapper(
+            IMapping<TKey, TValue> mappingPhase,
+            IPartitioning<TKey, TValue> partitioningPhase,
+            RpcMapReduceService.RpcMapReduceServiceClient rpcClient,
+            WorkerSettings settings)
         {
             _mappingPhase = mappingPhase;
             _partitioningPhase = partitioningPhase;
             _settings = settings;
-            _grpcClient = MRGrpcClientFactory.CreateMRGrpcClient();
+            _rpcClient = rpcClient;
         }
 
         public async Task StartAsync(string inputFilePath, int taskId, int numPartitions)
@@ -76,7 +80,7 @@ namespace MapReduce.Worker.Helpers
                 }
             };
             message.FileInfos.AddRange(fileInfos);
-            await _grpcClient.MapDoneAsync(message);
+            await _rpcClient.MapDoneAsync(message);
         }
     }
 }

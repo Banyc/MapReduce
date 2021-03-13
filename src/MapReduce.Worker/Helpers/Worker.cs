@@ -19,7 +19,11 @@ namespace MapReduce.Worker.Helpers
         private readonly IReducing<TKey, TValue> _reducingPhase;
         private readonly IPartitioning<TKey, TValue> _partitioningPhase;
 
-        public Worker(WorkerSettings settings, IMapping<TKey, TValue> mappingPhase, IReducing<TKey, TValue> reducingPhase, IPartitioning<TKey, TValue> partitioningPhase)
+        public Worker(
+            WorkerSettings settings,
+            IMapping<TKey, TValue> mappingPhase,
+            IReducing<TKey, TValue> reducingPhase,
+            IPartitioning<TKey, TValue> partitioningPhase)
         {
             _settings = settings;
             _mappingPhase = mappingPhase;
@@ -33,22 +37,23 @@ namespace MapReduce.Worker.Helpers
 
         public async Task StartAsync(CancellationToken cancelToken)
         {
-            var grpcClient = MRGrpcClientFactory.CreateMRGrpcClient();
+            using var grpcChannel = MRRpcClientFactory.CreateGrpcChannel();
+            var rpcClient = MRRpcClientFactory.CreaterpcClient(grpcChannel);
 
-            var heartBeatTask = Task.Run(() => HeartBeatLoopAsync(grpcClient, cancelToken));
-            var workTask = Task.Run(() => WorkLoopAsync(grpcClient, cancelToken));
+            var heartBeatTask = Task.Run(() => HeartBeatLoopAsync(rpcClient, cancelToken), cancelToken);
+            var workTask = Task.Run(() => WorkLoopAsync(rpcClient, cancelToken), cancelToken);
 
             await Task.WhenAll(heartBeatTask, workTask).ConfigureAwait(false);
         }
 
         private async Task HeartBeatLoopAsync(
-            RpcMapReduceService.RpcMapReduceServiceClient grpcClient, CancellationToken cancelToken)
+            RpcMapReduceService.RpcMapReduceServiceClient rpcClient, CancellationToken cancelToken)
         {
             while (!cancelToken.IsCancellationRequested)
             {
                 try
                 {
-                    _ = await grpcClient.HeartBeatAsync(_workerInfoDto, cancellationToken: cancelToken);
+                    _ = await rpcClient.HeartBeatAsync(_workerInfoDto, cancellationToken: cancelToken);
                 }
                 catch (RpcException) { }
 
@@ -57,14 +62,14 @@ namespace MapReduce.Worker.Helpers
         }
 
         private async Task WorkLoopAsync(
-            RpcMapReduceService.RpcMapReduceServiceClient grpcClient, CancellationToken cancelToken)
+            RpcMapReduceService.RpcMapReduceServiceClient rpcClient, CancellationToken cancelToken)
         {
             while (!cancelToken.IsCancellationRequested)
             {
                 // fetch task from master
                 try
                 {
-                    var taskInfoDto = await grpcClient.AskForTaskAsync(_workerInfoDto, cancellationToken: cancelToken);
+                    var taskInfoDto = await rpcClient.AskForTaskAsync(_workerInfoDto, cancellationToken: cancelToken);
 
                     switch ((MapReduceTaskType)taskInfoDto.TaskType)
                     {
@@ -72,6 +77,7 @@ namespace MapReduce.Worker.Helpers
                             Mapper<TKey, TValue> mapper = new(
                                 mappingPhase: _mappingPhase,
                                 partitioningPhase: _partitioningPhase,
+                                rpcClient: rpcClient,
                                 settings: _settings);
                             await mapper.StartAsync(
                                 inputFilePath: taskInfoDto.InputFileInfo.FilePath,
@@ -82,6 +88,7 @@ namespace MapReduce.Worker.Helpers
                         case MapReduceTaskType.Reduce:
                             Reducer<TKey, TValue> reducer = new(
                                 reducingPhase: _reducingPhase,
+                                rpcClient: rpcClient,
                                 settings: _settings);
                             await reducer.StartAsync(
                                 intermediateFilePaths: taskInfoDto.IntermediateFilesInfos.Select(xxxx => xxxx.FilePath).ToList(),

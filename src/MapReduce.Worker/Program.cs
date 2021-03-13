@@ -33,7 +33,11 @@ namespace MapReduce.Worker
             cancelToken.Cancel();
             Console.WriteLine("Killing worker...");
 
-            await Task.WhenAll(task).ConfigureAwait(false);
+            try
+            {
+                await Task.WhenAll(task).ConfigureAwait(false);
+            }
+            catch (TaskCanceledException) { }
         }
     }
 }

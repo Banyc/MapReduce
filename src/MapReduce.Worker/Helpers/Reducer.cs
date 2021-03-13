@@ -11,11 +11,16 @@ namespace MapReduce.Worker.Helpers
     public class Reducer<TKey, TValue>
     {
         private readonly IReducing<TKey, TValue> _reducingPhase;
+        private readonly RpcMapReduceService.RpcMapReduceServiceClient _rpcClient;
         private readonly WorkerSettings _settings;
 
-        public Reducer(IReducing<TKey, TValue> reducingPhase, WorkerSettings settings)
+        public Reducer(
+            IReducing<TKey, TValue> reducingPhase,
+            RpcMapReduceService.RpcMapReduceServiceClient rpcClient,
+            WorkerSettings settings)
         {
             _reducingPhase = reducingPhase;
+            _rpcClient = rpcClient;
             _settings = settings;
         }
 
@@ -70,8 +75,7 @@ namespace MapReduce.Worker.Helpers
             fileInfo.FilePath = tempFileStream.Name;
 
             // report to master
-            var grpcClient = MRGrpcClientFactory.CreateMRGrpcClient();
-            await grpcClient.ReduceDoneAsync(new() {
+            await _rpcClient.ReduceDoneAsync(new() {
                 FileInfo = fileInfo,
                 TaskId = taskId,
                 WorkerInfo = new()

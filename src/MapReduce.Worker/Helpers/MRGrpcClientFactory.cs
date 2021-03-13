@@ -4,16 +4,17 @@ using MapReduce.Shared;
 
 namespace MapReduce.Worker.Helpers
 {
-    public static class MRGrpcClientFactory
+    public static class MRRpcClientFactory
     {
-        public static RpcMapReduceService.RpcMapReduceServiceClient CreateMRGrpcClient()
+        public static GrpcChannel CreateGrpcChannel()
         {
-            var httpHandler = new HttpClientHandler();
+            var channel = GrpcChannel.ForAddress("http://localhost:5000");
+            return channel;
+        }
 
-            using var channel = GrpcChannel.ForAddress("http://localhost:5000");
-
-            var client = new RpcMapReduceService.RpcMapReduceServiceClient(channel);
-            return client;
+        public static RpcMapReduceService.RpcMapReduceServiceClient CreaterpcClient(GrpcChannel channel)
+        {
+            return new RpcMapReduceService.RpcMapReduceServiceClient(channel);
         }
     }
 }
