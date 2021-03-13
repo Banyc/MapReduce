@@ -9,15 +9,22 @@ using MapReduce.Worker.Models;
 
 namespace MapReduce.Worker.Helpers
 {
-    public class Worker
+    public class Worker<TKey, TValue>
     {
         private readonly string _workerUuid = Guid.NewGuid().ToString();
         private readonly WorkerInfoDto _workerInfoDto;
         private readonly WorkerSettings _settings;
 
-        public Worker(WorkerSettings settings)
+        private readonly IMapping<TKey, TValue> _mappingPhase;
+        private readonly IReducing<TKey, TValue> _reducingPhase;
+        private readonly IPartitioning<TKey, TValue> _partitioningPhase;
+
+        public Worker(WorkerSettings settings, IMapping<TKey, TValue> mappingPhase, IReducing<TKey, TValue> reducingPhase, IPartitioning<TKey, TValue> partitioningPhase)
         {
             _settings = settings;
+            _mappingPhase = mappingPhase;
+            _reducingPhase = reducingPhase;
+            _partitioningPhase = partitioningPhase;
             _workerInfoDto = new()
             {
                 WorkerUuid = _workerUuid
@@ -59,14 +66,12 @@ namespace MapReduce.Worker.Helpers
                 {
                     var taskInfoDto = await grpcClient.AskForTaskAsync(_workerInfoDto, cancellationToken: cancelToken);
 
-                    WordCount wordCount = new();
-
                     switch ((MapReduceTaskType)taskInfoDto.TaskType)
                     {
                         case MapReduceTaskType.Map:
-                            Mapper<string, int> mapper = new(
-                                mappingPhase: wordCount,
-                                partitioningPhase: new DefaultPartitioner<string, int>(),
+                            Mapper<TKey, TValue> mapper = new(
+                                mappingPhase: _mappingPhase,
+                                partitioningPhase: _partitioningPhase,
                                 settings: _settings);
                             await mapper.StartAsync(
                                 inputFilePath: taskInfoDto.InputFileInfo.FilePath,
@@ -75,8 +80,8 @@ namespace MapReduce.Worker.Helpers
                             ).ConfigureAwait(false);
                             break;
                         case MapReduceTaskType.Reduce:
-                            Reducer<string, int> reducer = new(
-                                reducingPhase: wordCount,
+                            Reducer<TKey, TValue> reducer = new(
+                                reducingPhase: _reducingPhase,
                                 settings: _settings);
                             await reducer.StartAsync(
                                 intermediateFilePaths: taskInfoDto.IntermediateFilesInfos.Select(xxxx => xxxx.FilePath).ToList(),
