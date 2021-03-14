@@ -13,8 +13,22 @@ namespace MapReduce.Master.Helpers
 
         public Task<Empty> HeartBeatAsync(WorkerInfoDto request)
         {
-            throw new NotImplementedException();
-
+            lock (_workers)
+            {
+                var worker = _workers.Find(xxxx => xxxx.WorkerUuid == request.WorkerUuid);
+                if (worker == null)
+                {
+                    _workers.Add(new()
+                    {
+                        LastHeartBeatTime = DateTime.UtcNow,
+                        WorkerUuid = request.WorkerUuid
+                    });
+                }
+                else
+                {
+                    worker.LastHeartBeatTime = DateTime.UtcNow;
+                }
+            }
             return Task.FromResult(new Empty());
         }
 

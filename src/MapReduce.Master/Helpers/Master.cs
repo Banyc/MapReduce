@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.IO;
 using System.Collections.Generic;
@@ -46,19 +47,48 @@ namespace MapReduce.Master.Helpers
             }
         }
 
-        public void Start()
+        public async Task StartAsync(CancellationToken cancelToken)
         {
+            // activate controller
             MapReduceController controller = new(this);
             _rpcServer = new()
             {
                 Services = { RpcMapReduceService.BindService(controller) },
                 Ports = { new ServerPort(_settings.IpAddress, _settings.Port, ServerCredentials.Insecure) }
             };
+
+            // check heart beats from clients
+            Task healthManagerTask = Task.Run(() => StartWorkerHealthManager(cancelToken), cancelToken);
+
+            await Task.WhenAll(healthManagerTask).ConfigureAwait(false);
         }
 
-        public async Task StartWorkerHealthChecker()
+        public async Task StartWorkerHealthManager(CancellationToken cancelToken)
         {
-            
+            while (!cancelToken.IsCancellationRequested)
+            {
+                lock (_workers)
+                {
+                    lock (_mapTasks)
+                    {
+                        lock (_reduceTasks)
+                        {
+                            int i;
+                            for (i = _workers.Count - 1; i >= 0; i--)
+                            {
+                                var worker = _workers[i];
+                                if (DateTime.UtcNow - worker.LastHeartBeatTime > TimeSpan.FromSeconds(10))
+                                {
+                                    worker.AssignedTask.Assignee = null;
+                                    worker.AssignedTask = null;
+                                    _workers.RemoveAt(i);
+                                }
+                            }
+                        }
+                    }
+                }
+                await Task.Delay(TimeSpan.FromSeconds(10), cancelToken).ConfigureAwait(false);
+            }
         }
 
         public TaskInfoDto AssignTask(WorkerInfoDto workerInfoDto)
