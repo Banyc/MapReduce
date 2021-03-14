@@ -61,7 +61,7 @@ namespace MapReduce.Master.Helpers
             };
         }
 
-        public async Task StartAsync(CancellationToken cancelToken)
+        public async Task<List<SimpleFileInfo>> StartAsync(CancellationToken cancelToken)
         {
             // activate controller
             _rpcServer.Start();
@@ -71,6 +71,9 @@ namespace MapReduce.Master.Helpers
 
             await Task.WhenAll(healthManagerTask).ConfigureAwait(false);
             await _rpcServer.ShutdownAsync().ConfigureAwait(false);
+
+            // return the file paths of the reduced outputs
+            return _reduceTasks.ConvertAll(xxxx => xxxx.CompletedFileInfo);
         }
 
         public async Task StartWorkerHealthManager(CancellationToken cancelToken)
