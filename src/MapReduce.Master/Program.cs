@@ -28,11 +28,11 @@ namespace MapReduce.Master
 
             Task masterTask = master.StartAsync(cancelToken.Token);
 
-            Console.WriteLine("Press any key to stop master.");
-            Console.ReadKey();
+            // Console.WriteLine("Press any key to stop master.");
+            // Console.ReadKey();
 
-            cancelToken.Cancel();
-            Console.WriteLine("Killing master...");
+            // cancelToken.Cancel();
+            // Console.WriteLine("Killing master...");
 
             try
             {
