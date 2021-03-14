@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using Grpc.Core;
 using MapReduce.Shared;
 using MapReduce.Shared.Helpers;
@@ -40,25 +41,32 @@ namespace MapReduce.Worker.Helpers
             using var grpcChannel = MRRpcClientFactory.CreateGrpcChannel();
             var rpcClient = MRRpcClientFactory.CreaterpcClient(grpcChannel);
 
-            var heartBeatTask = Task.Run(() => HeartBeatLoopAsync(rpcClient, cancelToken), cancelToken);
+            using var heartBeatTicker = HeartBeatLoop(rpcClient, cancelToken);
             var workTask = Task.Run(() => WorkLoopAsync(rpcClient, cancelToken), cancelToken);
 
-            await Task.WhenAll(heartBeatTask, workTask).ConfigureAwait(false);
+            await Task.WhenAll(workTask).ConfigureAwait(false);
         }
 
-        private async Task HeartBeatLoopAsync(
+        private System.Timers.Timer HeartBeatLoop(
             RpcMapReduceService.RpcMapReduceServiceClient rpcClient, CancellationToken cancelToken)
         {
-            while (!cancelToken.IsCancellationRequested)
+            System.Timers.Timer heartBeatTicker = new()
             {
-                try
+                Interval = TimeSpan.FromSeconds(4).TotalMilliseconds
+            };
+            heartBeatTicker.Elapsed += (object sender, ElapsedEventArgs e) =>
+            {
+                if (!cancelToken.IsCancellationRequested)
                 {
-                    _ = await rpcClient.HeartBeatAsync(_workerInfoDto, cancellationToken: cancelToken);
+                    try
+                    {
+                        _ = rpcClient.HeartBeatAsync(_workerInfoDto, cancellationToken: cancelToken);
+                    }
+                    catch (RpcException) { }
                 }
-                catch (RpcException) { }
-
-                await Task.Delay(TimeSpan.FromSeconds(4), cancelToken).ConfigureAwait(false);
-            }
+            };
+            heartBeatTicker.Start();
+            return heartBeatTicker;
         }
 
         private async Task WorkLoopAsync(
