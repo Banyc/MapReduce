@@ -87,8 +87,11 @@ namespace MapReduce.Master.Helpers
                                 var worker = _workers[i];
                                 if (DateTime.UtcNow - worker.LastHeartBeatTime > TimeSpan.FromSeconds(10))
                                 {
-                                    worker.AssignedTask.Assignee = null;
-                                    worker.AssignedTask = null;
+                                    if (worker.AssignedTask != null)
+                                    {
+                                        worker.AssignedTask.Assignee = null;
+                                        worker.AssignedTask = null;
+                                    }
                                     _workers.RemoveAt(i);
                                 }
                             }
@@ -126,7 +129,7 @@ namespace MapReduce.Master.Helpers
                     // assign workers with map tasks
                     taskInfoDto.TaskType = (int)MapReduceTaskType.Map;
                     // find unassigned task
-                    MapTask mapTask = _mapTasks.First(xxxx => xxxx.Assignee == null);
+                    MapTask mapTask = _mapTasks.First(xxxx => !xxxx.IsTaskCompleted);
                     mapTask.Assignee = workerInfo;
                     mapTask.TaskId = _biggestTaskId;
                     // assign the task to the worker
@@ -147,13 +150,14 @@ namespace MapReduce.Master.Helpers
                     // assign workers with reduce tasks
                     taskInfoDto.TaskType = (int)MapReduceTaskType.Reduce;
                     // find unassigned task
-                    ReduceTask reduceTask = _reduceTasks.First(xxxx => xxxx.Assignee == null);
+                    ReduceTask reduceTask = _reduceTasks.First(xxxx => !xxxx.IsTaskCompleted);
                     int partitionIndex = _reduceTasks.IndexOf(reduceTask);
                     reduceTask.Assignee = workerInfo;
                     reduceTask.TaskId = _biggestTaskId;
                     // assign the task to the worker
                     workerInfo.AssignedTask = reduceTask;
                     // assign partition
+                    reduceTask.AssignedFiles = new List<SimpleFileInfo>();
                     foreach (var mapTask in _mapTasks)
                     {
                         var file = mapTask.CompletedFileInfos
