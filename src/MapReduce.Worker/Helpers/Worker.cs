@@ -13,7 +13,6 @@ namespace MapReduce.Worker.Helpers
 {
     public class Worker<TKey, TValue> : IDisposable
     {
-        private readonly string _workerUuid = Guid.NewGuid().ToString();
         private readonly WorkerInfoDto _workerInfoDto;
         private readonly WorkerSettings _settings;
 
@@ -39,7 +38,7 @@ namespace MapReduce.Worker.Helpers
             _partitioningPhase = partitioningPhase;
             _workerInfoDto = new()
             {
-                WorkerUuid = _workerUuid
+                WorkerUuid = settings.WorkerUuid
             };
             _channel = rpcClientFactory.CreateRpcChannel();
             _heartBeatTicker = new()
@@ -93,7 +92,10 @@ namespace MapReduce.Worker.Helpers
             {
                 _ = await rpcClient.HeartBeatAsync(_workerInfoDto);
             }
-            catch (RpcException) { }
+            catch (RpcException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private async Task WorkLoopAsync(
@@ -131,14 +133,16 @@ namespace MapReduce.Worker.Helpers
                                 partitionIndex: taskInfoDto.PartitionIndex
                             ).ConfigureAwait(false);
                             break;
+                        case MapReduceTaskType.Nop:
                         case MapReduceTaskType.Exit:
                         default:
                             await Task.Delay(TimeSpan.FromSeconds(4), cancelToken).ConfigureAwait(false);
                             break;
                     }
                 }
-                catch (RpcException)
+                catch (RpcException ex)
                 {
+                    Console.WriteLine(ex.Message);
                     await Task.Delay(TimeSpan.FromSeconds(4), cancelToken).ConfigureAwait(false);
                 }
             }
