@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System;
 using System.Threading.Tasks;
 using MapReduce.Shared;
+using MapReduce.Master.Models;
 
 namespace MapReduce.Master.Helpers
 {
@@ -8,11 +10,13 @@ namespace MapReduce.Master.Helpers
     {
         public Task<TaskInfoDto> AskForTaskAsync(WorkerInfoDto request)
         {
+            Console.WriteLine($"[info] {request.WorkerUuid}: Ask for task.");
             return Task.FromResult(this.AssignTask(request));
         }
 
         public Task<Empty> HeartBeatAsync(WorkerInfoDto request)
         {
+            Console.WriteLine($"[info] {request.WorkerUuid}: Heartbeat.");
             lock (_workers)
             {
                 var worker = _workers.Find(xxxx => xxxx.WorkerUuid == request.WorkerUuid);
@@ -34,13 +38,20 @@ namespace MapReduce.Master.Helpers
 
         public Task<Empty> MapDoneAsync(MapOutputInfoDto request)
         {
+            Console.WriteLine($"[info] {request.WorkerInfo.WorkerUuid}: Map done.");
+            Console.WriteLine($"[info] {request.WorkerInfo.WorkerUuid}: Files are:");
+            foreach (var fileInfo in request.FileInfos)
+            {
+                Console.WriteLine($"[info] {fileInfo.FilePath}");
+            }
             lock (_mapTasks)
             {
-                var mapTask = _mapTasks.Find(xxxx => xxxx.Assignee.WorkerUuid == request.WorkerInfo.WorkerUuid);
+                var mapTask = _mapTasks.Find(xxxx => xxxx.Assignee?.WorkerUuid == request.WorkerInfo.WorkerUuid);
                 if (mapTask != null)
                 {
                     mapTask.Assignee.AssignedTask = null;
                     mapTask.Assignee = null;
+                    mapTask.CompletedFileInfos = new List<SimpleFileInfo>();
                     foreach (var fileInfo in request.FileInfos)
                     {
                         mapTask.CompletedFileInfos.Add(new()
@@ -57,9 +68,12 @@ namespace MapReduce.Master.Helpers
 
         public Task<Empty> ReduceDoneAsync(ReduceOutputInfoDto request)
         {
+            Console.WriteLine($"[info] {request.WorkerInfo.WorkerUuid}: Reduce done.");
+            Console.WriteLine($"[info] {request.WorkerInfo.WorkerUuid}: File is:");
+            Console.WriteLine($"[info] {request.FileInfo.FilePath}");
             lock (_reduceTasks)
             {
-                var reduceTask = _reduceTasks.Find(xxxx => xxxx.Assignee.WorkerUuid == request.WorkerInfo.WorkerUuid);
+                var reduceTask = _reduceTasks.Find(xxxx => xxxx.Assignee?.WorkerUuid == request.WorkerInfo.WorkerUuid);
                 if (reduceTask != null)
                 {
                     reduceTask.Assignee.AssignedTask = null;

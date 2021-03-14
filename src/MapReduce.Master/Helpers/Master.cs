@@ -51,17 +51,19 @@ namespace MapReduce.Master.Helpers
                     });
                 }
             }
-        }
-
-        public async Task StartAsync(CancellationToken cancelToken)
-        {
-            // activate controller
+            // build listener
             MapReduceController controller = new(this);
             _rpcServer = new()
             {
                 Services = { RpcMapReduceService.BindService(controller) },
                 Ports = { new ServerPort(_settings.IpAddress, _settings.Port, ServerCredentials.Insecure) }
             };
+        }
+
+        public async Task StartAsync(CancellationToken cancelToken)
+        {
+            // activate controller
+            _rpcServer.Start();
 
             // check heart beats from clients
             Task healthManagerTask = Task.Run(() => StartWorkerHealthManager(cancelToken), cancelToken);
@@ -103,7 +105,10 @@ namespace MapReduce.Master.Helpers
             if (workerInfo == null)
             {
                 // the worker is not registered. Ignore.
-                return null;
+                return new()
+                {
+                    TaskType = (int)MapReduceTaskType.Nop
+                };
             }
             lock (this)
             {
@@ -172,7 +177,11 @@ namespace MapReduce.Master.Helpers
             }
             else
             {
-                return null;
+                return new()
+                {
+                    TaskType = (int)MapReduceTaskType.Nop,
+                    TaskId = _biggestTaskId
+                };
             }
 
             return taskInfoDto;
