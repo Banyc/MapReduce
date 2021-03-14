@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System;
 using System.Threading.Tasks;
 using MapReduce.Worker.Helpers;
@@ -12,37 +13,45 @@ namespace MapReduce.Worker
             Console.WriteLine("Hello World!");
 
             WordCount workCount = new();
+            DefaultPartitioner<string, int> defaultPartitioner = new();
 
-            RpcClientFactory rpcClientFactory = new(new(){
+            RpcClientFactory rpcClientFactory = new(new()
+            {
                 Address = "http://localhost:5000"
             });
 
-            using Helpers.Worker<string, int> worker = new(
-                settings: new()
-                {
-                    WorkerUuid = Guid.NewGuid().ToString(),
-                    MappedOutputDirectory = "mapped",
-                    ReducedOutputDirectory = "reduced",
-                },
-                rpcClientFactory: rpcClientFactory,
-                mappingPhase: workCount,
-                reducingPhase: workCount,
-                partitioningPhase: new DefaultPartitioner<string, int>()
-            );
+            const int numWorkers = 12;
 
-            CancellationTokenSource cancelToken = new();
+            List<Helpers.Worker<string, int>> workers = new();
+            List<Task> tasks = new();
 
-            Task task = worker.StartAsync(cancelToken.Token);
+            int i;
+            for (i = 0; i < numWorkers; i++)
+            {
+                Helpers.Worker<string, int> worker = new(
+                    settings: new()
+                    {
+                        WorkerUuid = Guid.NewGuid().ToString(),
+                        MappedOutputDirectory = "mapped",
+                        ReducedOutputDirectory = "reduced",
+                    },
+                    rpcClientFactory: rpcClientFactory,
+                    mappingPhase: workCount,
+                    reducingPhase: workCount,
+                    partitioningPhase: defaultPartitioner
+                );
 
-            // Console.WriteLine("Press any key to stop worker.");
-            // Console.ReadKey();
+                CancellationTokenSource cancelToken = new();
 
-            // cancelToken.Cancel();
-            // Console.WriteLine("Killing worker...");
+                Task task = worker.StartAsync(cancelToken.Token);
+
+                workers.Add(worker);
+                tasks.Add(task);
+            }
 
             try
             {
-                await Task.WhenAll(task).ConfigureAwait(false);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
             catch (TaskCanceledException) { }
         }
