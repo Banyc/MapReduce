@@ -69,7 +69,9 @@ namespace MapReduce.Worker.Helpers
             // save intermediate to file
             FileInfoDto fileInfo = new();
             string tempFileName = $"mr-{taskId}-{partitionIndex}";
-            using var tempFileStream = File.OpenWrite(tempFileName);
+            Directory.CreateDirectory(_settings.ReducedOutputDirectory);
+            string path = Path.Combine(_settings.ReducedOutputDirectory, tempFileName);
+            using var tempFileStream = File.OpenWrite(path);
             await System.Text.Json.JsonSerializer.SerializeAsync(tempFileStream, reduced).ConfigureAwait(false);
             fileInfo.FileSize = (int)tempFileStream.Length;
             fileInfo.FilePath = tempFileStream.Name;

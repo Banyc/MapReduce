@@ -61,8 +61,9 @@ namespace MapReduce.Worker.Helpers
                 FileInfoDto fileInfo = new();
 
                 string fileName = $"mr-temp-{taskId}-{partition.Key}";
-
-                using FileStream tempFileStream = File.OpenWrite(fileName);
+                Directory.CreateDirectory(_settings.MappedOutputDirectory);
+                string path = Path.Combine(_settings.MappedOutputDirectory, fileName);
+                using FileStream tempFileStream = File.OpenWrite(path);
                 await System.Text.Json.JsonSerializer.SerializeAsync(tempFileStream, partition.Value).ConfigureAwait(false);
 
                 fileInfo.FileSize = (int)tempFileStream.Length;

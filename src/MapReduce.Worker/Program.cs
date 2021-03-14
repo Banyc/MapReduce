@@ -20,7 +20,9 @@ namespace MapReduce.Worker
             using Helpers.Worker<string, int> worker = new(
                 settings: new()
                 {
-                    WorkerUuid = Guid.NewGuid().ToString()
+                    WorkerUuid = Guid.NewGuid().ToString(),
+                    MappedOutputDirectory = "mapped",
+                    ReducedOutputDirectory = "reduced",
                 },
                 rpcClientFactory: rpcClientFactory,
                 mappingPhase: workCount,
@@ -32,11 +34,11 @@ namespace MapReduce.Worker
 
             Task task = worker.StartAsync(cancelToken.Token);
 
-            Console.WriteLine("Press any key to stop worker.");
-            Console.ReadKey();
+            // Console.WriteLine("Press any key to stop worker.");
+            // Console.ReadKey();
 
-            cancelToken.Cancel();
-            Console.WriteLine("Killing worker...");
+            // cancelToken.Cancel();
+            // Console.WriteLine("Killing worker...");
 
             try
             {
