@@ -13,7 +13,7 @@ namespace MapReduce.Worker
 
             WordCount workCount = new();
 
-            Helpers.Worker<string, int> worker = new(
+            using Helpers.Worker<string, int> worker = new(
                 settings: new()
                 {
                     WorkerUuid = Guid.NewGuid().ToString()

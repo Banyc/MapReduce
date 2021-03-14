@@ -4,13 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Grpc.Core;
+using Grpc.Net.Client;
 using MapReduce.Shared;
 using MapReduce.Shared.Helpers;
 using MapReduce.Worker.Models;
 
 namespace MapReduce.Worker.Helpers
 {
-    public class Worker<TKey, TValue>
+    public class Worker<TKey, TValue> : IDisposable
     {
         private readonly string _workerUuid = Guid.NewGuid().ToString();
         private readonly WorkerInfoDto _workerInfoDto;
@@ -19,6 +20,9 @@ namespace MapReduce.Worker.Helpers
         private readonly IMapping<TKey, TValue> _mappingPhase;
         private readonly IReducing<TKey, TValue> _reducingPhase;
         private readonly IPartitioning<TKey, TValue> _partitioningPhase;
+        private readonly GrpcChannel _channel;
+        private readonly System.Timers.Timer _heartBeatTicker;
+        public bool IsWorking { get; private set; }
 
         public Worker(
             WorkerSettings settings,
@@ -34,39 +38,59 @@ namespace MapReduce.Worker.Helpers
             {
                 WorkerUuid = _workerUuid
             };
+            _channel = MRRpcClientFactory.CreateGrpcChannel();
+            _heartBeatTicker = new()
+            {
+                Interval = TimeSpan.FromSeconds(4).TotalMilliseconds
+            };
+            StartHeartBeat();
+        }
+
+        public void Dispose()
+        {
+            _heartBeatTicker.Dispose();
+            _channel.Dispose();
+        }
+
+        public void StartHeartBeat()
+        {
+            // heart beats
+            var rpcClientHeartBeat = MRRpcClientFactory.CreaterpcClient(_channel);
+
+            _heartBeatTicker.Elapsed += (object sender, ElapsedEventArgs e) => _ = SendHeartBeatAsync(rpcClientHeartBeat);
+            _heartBeatTicker.Start();
         }
 
         public async Task StartAsync(CancellationToken cancelToken)
         {
-            using var grpcChannel = MRRpcClientFactory.CreateGrpcChannel();
-            var rpcClient = MRRpcClientFactory.CreaterpcClient(grpcChannel);
+            // worker tasks
+            if (this.IsWorking)
+            {
+                return;
+            }
+            this.IsWorking = true;
 
-            using var heartBeatTicker = HeartBeatLoop(rpcClient, cancelToken);
-            var workTask = Task.Run(() => WorkLoopAsync(rpcClient, cancelToken), cancelToken);
+            var rpcClientWorkTask = MRRpcClientFactory.CreaterpcClient(_channel);
+            var workTask = Task.Run(() => WorkLoopAsync(rpcClientWorkTask, cancelToken), cancelToken);
 
-            await Task.WhenAll(workTask).ConfigureAwait(false);
+            try
+            {
+                await Task.WhenAll(workTask).ConfigureAwait(false);
+            }
+            finally
+            {
+                this.IsWorking = false;
+            }
         }
 
-        private System.Timers.Timer HeartBeatLoop(
-            RpcMapReduceService.RpcMapReduceServiceClient rpcClient, CancellationToken cancelToken)
+        private async Task SendHeartBeatAsync(
+            RpcMapReduceService.RpcMapReduceServiceClient rpcClient)
         {
-            System.Timers.Timer heartBeatTicker = new()
+            try
             {
-                Interval = TimeSpan.FromSeconds(4).TotalMilliseconds
-            };
-            heartBeatTicker.Elapsed += (object sender, ElapsedEventArgs e) =>
-            {
-                if (!cancelToken.IsCancellationRequested)
-                {
-                    try
-                    {
-                        _ = rpcClient.HeartBeatAsync(_workerInfoDto, cancellationToken: cancelToken);
-                    }
-                    catch (RpcException) { }
-                }
-            };
-            heartBeatTicker.Start();
-            return heartBeatTicker;
+                _ = await rpcClient.HeartBeatAsync(_workerInfoDto);
+            }
+            catch (RpcException) { }
         }
 
         private async Task WorkLoopAsync(
@@ -110,7 +134,8 @@ namespace MapReduce.Worker.Helpers
                             break;
                     }
                 }
-                catch (RpcException) {
+                catch (RpcException)
+                {
                     await Task.Delay(TimeSpan.FromSeconds(4), cancelToken).ConfigureAwait(false);
                 }
             }
