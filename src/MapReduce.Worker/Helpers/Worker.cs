@@ -92,10 +92,7 @@ namespace MapReduce.Worker.Helpers
             {
                 _ = await rpcClient.HeartBeatAsync(_workerInfoDto);
             }
-            catch (RpcException ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            catch (RpcException) { }
         }
 
         private async Task WorkLoopAsync(
@@ -140,9 +137,8 @@ namespace MapReduce.Worker.Helpers
                             break;
                     }
                 }
-                catch (RpcException ex)
+                catch (RpcException)
                 {
-                    Console.WriteLine(ex.Message);
                     await Task.Delay(TimeSpan.FromSeconds(4), cancelToken).ConfigureAwait(false);
                 }
             }
