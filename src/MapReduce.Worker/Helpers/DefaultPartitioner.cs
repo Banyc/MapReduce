@@ -9,7 +9,7 @@ namespace MapReduce.Worker.Helpers
             Dictionary<int, Dictionary<TKey, List<TValue>>> partitions = new();
             foreach (var keyValues in mappingsMerged)
             {
-                int partitionNumber = keyValues.Key.GetHashCode() % numPartitions;
+                int partitionNumber = keyValues.Key.GetHashCode() & 0x7fffffff % numPartitions;
                 if (!partitions.ContainsKey(partitionNumber))
                 {
                     partitions[partitionNumber] = new();
