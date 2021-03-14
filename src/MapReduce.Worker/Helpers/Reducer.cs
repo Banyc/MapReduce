@@ -33,9 +33,12 @@ namespace MapReduce.Worker.Helpers
                 using var fs = File.OpenRead(filePath);
                 using var sr = new StreamReader(fs);
 
+                // System.Text.Json fails to parse a file of json.
+                Newtonsoft.Json.JsonSerializer jsonSerializer = new();
+
                 Dictionary<TKey, List<TValue>> temp =
-                    await System.Text.Json.JsonSerializer
-                        .DeserializeAsync<Dictionary<TKey, List<TValue>>>(fs).ConfigureAwait(false);
+                    (Dictionary<TKey, List<TValue>>)jsonSerializer
+                        .Deserialize(sr, typeof(Dictionary<TKey, List<TValue>>));
 
                 foreach (var tempKeyValue in temp)
                 {
@@ -75,6 +78,7 @@ namespace MapReduce.Worker.Helpers
             await System.Text.Json.JsonSerializer.SerializeAsync(tempFileStream, reduced).ConfigureAwait(false);
             fileInfo.FileSize = (int)tempFileStream.Length;
             fileInfo.FilePath = tempFileStream.Name;
+            fileInfo.PartitionIndex = partitionIndex;
 
             // report to master
             await _rpcClient.ReduceDoneAsync(new() {

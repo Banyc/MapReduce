@@ -68,6 +68,7 @@ namespace MapReduce.Worker.Helpers
 
                 fileInfo.FileSize = (int)tempFileStream.Length;
                 fileInfo.FilePath = tempFileStream.Name;
+                fileInfo.PartitionIndex = partition.Key;
                 fileInfos.Add(fileInfo);
             }
 
