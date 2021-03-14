@@ -33,12 +33,10 @@ namespace MapReduce.Worker.Helpers
                 using var fs = File.OpenRead(filePath);
                 using var sr = new StreamReader(fs);
 
-                // System.Text.Json fails to parse a file of json.
-                Newtonsoft.Json.JsonSerializer jsonSerializer = new();
-
                 Dictionary<TKey, List<TValue>> temp =
-                    (Dictionary<TKey, List<TValue>>)jsonSerializer
-                        .Deserialize(sr, typeof(Dictionary<TKey, List<TValue>>));
+                    await System.Text.Json.JsonSerializer
+                        .DeserializeAsync<Dictionary<TKey, List<TValue>>>(fs)
+                        .ConfigureAwait(false);
 
                 foreach (var tempKeyValue in temp)
                 {
@@ -74,6 +72,7 @@ namespace MapReduce.Worker.Helpers
             string tempFileName = $"mr-{taskId}-{partitionIndex}";
             Directory.CreateDirectory(_settings.ReducedOutputDirectory);
             string path = Path.Combine(_settings.ReducedOutputDirectory, tempFileName);
+            File.Delete(path);  // clean the whole file before pure overwrite
             using var tempFileStream = File.OpenWrite(path);
             await System.Text.Json.JsonSerializer.SerializeAsync(tempFileStream, reduced).ConfigureAwait(false);
             fileInfo.FileSize = (int)tempFileStream.Length;

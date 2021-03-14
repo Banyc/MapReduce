@@ -63,8 +63,11 @@ namespace MapReduce.Worker.Helpers
                 string fileName = $"mr-temp-{taskId}-{partition.Key}";
                 Directory.CreateDirectory(_settings.MappedOutputDirectory);
                 string path = Path.Combine(_settings.MappedOutputDirectory, fileName);
+                File.Delete(path);  // clean the whole file before pure overwrite
                 using FileStream tempFileStream = File.OpenWrite(path);
-                await System.Text.Json.JsonSerializer.SerializeAsync(tempFileStream, partition.Value).ConfigureAwait(false);
+                await System.Text.Json.JsonSerializer
+                    .SerializeAsync(tempFileStream, partition.Value)
+                    .ConfigureAwait(false);
 
                 fileInfo.FileSize = (int)tempFileStream.Length;
                 fileInfo.FilePath = tempFileStream.Name;
