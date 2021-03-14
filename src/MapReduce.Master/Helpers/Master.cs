@@ -27,23 +27,29 @@ namespace MapReduce.Master.Helpers
         public Master(MasterSettings settings)
         {
             _settings = settings;
-            // build _mapTasks
-            foreach (var inputFilePath in settings.InputFilePaths)
+            lock (_mapTasks)
             {
-                _mapTasks.Add(new()
+                // build _mapTasks
+                foreach (var inputFilePath in settings.InputFilePaths)
                 {
-                    // AssignedFilePath = inputFilePath
-                    AssignedFile = new FileInfo(inputFilePath)
-                });
+                    _mapTasks.Add(new()
+                    {
+                        // AssignedFilePath = inputFilePath
+                        AssignedFile = new FileInfo(inputFilePath)
+                    });
+                }
             }
-            // build _reduceTasks
-            int i;
-            for (i = 0; i < settings.ReduceTaskCount; i++)
+            lock (_reduceTasks)
             {
-                _reduceTasks.Add(new()
+                // build _reduceTasks
+                int i;
+                for (i = 0; i < settings.ReduceTaskCount; i++)
                 {
+                    _reduceTasks.Add(new()
+                    {
 
-                });
+                    });
+                }
             }
         }
 
@@ -99,7 +105,10 @@ namespace MapReduce.Master.Helpers
                 // the worker is not registered. Ignore.
                 return null;
             }
-            _biggestTaskId++;
+            lock (this)
+            {
+                _biggestTaskId++;
+            }
             // assign DTO with info
             TaskInfoDto taskInfoDto = new();
             taskInfoDto.TaskId = _biggestTaskId;
@@ -107,53 +116,59 @@ namespace MapReduce.Master.Helpers
             // if map not done
             if (!_mapTasks.All(xxxx => xxxx.IsTaskCompleted))
             {
-                // assign workers with map tasks
-                taskInfoDto.TaskType = (int)MapReduceTaskType.Map;
-                // find unassigned task
-                MapTask mapTask = _mapTasks.First(xxxx => xxxx.Assignee == null);
-                mapTask.Assignee = workerInfo;
-                mapTask.TaskId = _biggestTaskId;
-                // assign the task to the worker
-                workerInfo.AssignedTask = mapTask;
-                // build DTO file info
-                FileInfoDto fileInfoDto = new()
+                lock (_mapTasks)
                 {
-                    FilePath = mapTask.AssignedFile.FullName,
-                    FileSize = (int)mapTask.AssignedFile.Length
-                };
-                taskInfoDto.InputFileInfo = fileInfoDto;
+                    // assign workers with map tasks
+                    taskInfoDto.TaskType = (int)MapReduceTaskType.Map;
+                    // find unassigned task
+                    MapTask mapTask = _mapTasks.First(xxxx => xxxx.Assignee == null);
+                    mapTask.Assignee = workerInfo;
+                    mapTask.TaskId = _biggestTaskId;
+                    // assign the task to the worker
+                    workerInfo.AssignedTask = mapTask;
+                    // build DTO file info
+                    FileInfoDto fileInfoDto = new()
+                    {
+                        FilePath = mapTask.AssignedFile.FullName,
+                        FileSize = (int)mapTask.AssignedFile.Length
+                    };
+                    taskInfoDto.InputFileInfo = fileInfoDto;
+                }
             }
             else if (!_reduceTasks.All(xxxx => xxxx.IsTaskCompleted))
             {
-                // assign workers with reduce tasks
-                taskInfoDto.TaskType = (int)MapReduceTaskType.Reduce;
-                // find unassigned task
-                ReduceTask reduceTask = _reduceTasks.First(xxxx => xxxx.Assignee == null);
-                int partitionIndex = _reduceTasks.IndexOf(reduceTask);
-                reduceTask.Assignee = workerInfo;
-                reduceTask.TaskId = _biggestTaskId;
-                // assign the task to the worker
-                workerInfo.AssignedTask = reduceTask;
-                // assign partition
-                foreach (var mapTask in _mapTasks)
+                lock (_reduceTasks)
                 {
-                    var file = mapTask.CompletedFileInfos
-                        .First(xxxx => xxxx.PartitionIndex == partitionIndex);
-                    reduceTask.AssignedFiles.Add(file);
-                }
-                // build DTO file info
-                foreach (var assignedFile in reduceTask.AssignedFiles)
-                {
-                    FileInfoDto fileInfoDto = new()
+                    // assign workers with reduce tasks
+                    taskInfoDto.TaskType = (int)MapReduceTaskType.Reduce;
+                    // find unassigned task
+                    ReduceTask reduceTask = _reduceTasks.First(xxxx => xxxx.Assignee == null);
+                    int partitionIndex = _reduceTasks.IndexOf(reduceTask);
+                    reduceTask.Assignee = workerInfo;
+                    reduceTask.TaskId = _biggestTaskId;
+                    // assign the task to the worker
+                    workerInfo.AssignedTask = reduceTask;
+                    // assign partition
+                    foreach (var mapTask in _mapTasks)
                     {
-                        FilePath = assignedFile.FilePath,
-                        FileSize = assignedFile.FileSize,
-                        PartitionIndex = assignedFile.PartitionIndex
-                    };
-                    taskInfoDto.IntermediateFilesInfos.Add(fileInfoDto);
+                        var file = mapTask.CompletedFileInfos
+                            .First(xxxx => xxxx.PartitionIndex == partitionIndex);
+                        reduceTask.AssignedFiles.Add(file);
+                    }
+                    // build DTO file info
+                    foreach (var assignedFile in reduceTask.AssignedFiles)
+                    {
+                        FileInfoDto fileInfoDto = new()
+                        {
+                            FilePath = assignedFile.FilePath,
+                            FileSize = assignedFile.FileSize,
+                            PartitionIndex = assignedFile.PartitionIndex
+                        };
+                        taskInfoDto.IntermediateFilesInfos.Add(fileInfoDto);
+                    }
+                    // assign DTO with partition index
+                    taskInfoDto.PartitionIndex = partitionIndex;
                 }
-                // assign DTO with partition index
-                taskInfoDto.PartitionIndex = partitionIndex;
             }
             else
             {
