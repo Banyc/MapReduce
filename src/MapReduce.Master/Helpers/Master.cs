@@ -23,6 +23,7 @@ namespace MapReduce.Master.Helpers
         private int _biggestTaskId = 0;
         private readonly MasterSettings _settings;
         private Grpc.Core.Server _rpcServer;
+        private bool _isAllDone = false;
 
         public Master(MasterSettings settings)
         {
@@ -69,11 +70,12 @@ namespace MapReduce.Master.Helpers
             Task healthManagerTask = Task.Run(() => StartWorkerHealthManager(cancelToken), cancelToken);
 
             await Task.WhenAll(healthManagerTask).ConfigureAwait(false);
+            await _rpcServer.ShutdownAsync().ConfigureAwait(false);
         }
 
         public async Task StartWorkerHealthManager(CancellationToken cancelToken)
         {
-            while (!cancelToken.IsCancellationRequested)
+            while (!cancelToken.IsCancellationRequested && !_isAllDone)
             {
                 lock (_workers)
                 {

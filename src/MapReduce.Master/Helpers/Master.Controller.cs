@@ -85,6 +85,11 @@ namespace MapReduce.Master.Helpers
                         PartitionIndex = request.FileInfo.PartitionIndex
                     };
                 }
+                // check if all tasks are done
+                if (!_reduceTasks.Exists(xxxx => !xxxx.IsTaskCompleted))
+                {
+                    _isAllDone = true;
+                }
                 return Task.FromResult(new Empty());
             }
         }
