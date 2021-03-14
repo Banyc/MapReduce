@@ -22,15 +22,18 @@ namespace MapReduce.Worker.Helpers
         private readonly IPartitioning<TKey, TValue> _partitioningPhase;
         private readonly GrpcChannel _channel;
         private readonly System.Timers.Timer _heartBeatTicker;
+        private readonly RpcClientFactory _rpcClientFactory;
         public bool IsWorking { get; private set; }
 
         public Worker(
             WorkerSettings settings,
+            RpcClientFactory rpcClientFactory,
             IMapping<TKey, TValue> mappingPhase,
             IReducing<TKey, TValue> reducingPhase,
             IPartitioning<TKey, TValue> partitioningPhase)
         {
             _settings = settings;
+            _rpcClientFactory = rpcClientFactory;
             _mappingPhase = mappingPhase;
             _reducingPhase = reducingPhase;
             _partitioningPhase = partitioningPhase;
@@ -38,7 +41,7 @@ namespace MapReduce.Worker.Helpers
             {
                 WorkerUuid = _workerUuid
             };
-            _channel = MRRpcClientFactory.CreateGrpcChannel();
+            _channel = rpcClientFactory.CreateRpcChannel();
             _heartBeatTicker = new()
             {
                 Interval = TimeSpan.FromSeconds(4).TotalMilliseconds
@@ -55,7 +58,7 @@ namespace MapReduce.Worker.Helpers
         public void StartHeartBeat()
         {
             // heart beats
-            var rpcClientHeartBeat = MRRpcClientFactory.CreaterpcClient(_channel);
+            var rpcClientHeartBeat = RpcClientFactory.CreateRpcClient(_channel);
 
             _heartBeatTicker.Elapsed += (object sender, ElapsedEventArgs e) => _ = SendHeartBeatAsync(rpcClientHeartBeat);
             _heartBeatTicker.Start();
@@ -70,7 +73,7 @@ namespace MapReduce.Worker.Helpers
             }
             this.IsWorking = true;
 
-            var rpcClientWorkTask = MRRpcClientFactory.CreaterpcClient(_channel);
+            var rpcClientWorkTask = RpcClientFactory.CreateRpcClient(_channel);
             var workTask = Task.Run(() => WorkLoopAsync(rpcClientWorkTask, cancelToken), cancelToken);
 
             try

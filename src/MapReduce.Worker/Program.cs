@@ -13,11 +13,16 @@ namespace MapReduce.Worker
 
             WordCount workCount = new();
 
+            RpcClientFactory rpcClientFactory = new(new(){
+                Address = "http://localhost:5000"
+            });
+
             using Helpers.Worker<string, int> worker = new(
                 settings: new()
                 {
                     WorkerUuid = Guid.NewGuid().ToString()
                 },
+                rpcClientFactory: rpcClientFactory,
                 mappingPhase: workCount,
                 reducingPhase: workCount,
                 partitioningPhase: new DefaultPartitioner<string, int>()
