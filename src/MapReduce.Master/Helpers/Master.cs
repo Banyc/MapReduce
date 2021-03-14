@@ -1,13 +1,17 @@
+using System.Threading;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using MapReduce.Master.Models;
 using MapReduce.Shared;
 using MapReduce.Shared.Helpers;
+using System.Threading.Tasks;
+using MapReduce.Master.Controllers;
+using Grpc.Core;
 
 namespace MapReduce.Master.Helpers
 {
-    public class Master
+    public partial class Master
     {
         // worker list
         private readonly List<WorkerInfo> _workers = new();
@@ -16,11 +20,14 @@ namespace MapReduce.Master.Helpers
         // reduce tasks
         private readonly List<ReduceTask> _reduceTasks = new();
         private int _biggestTaskId = 0;
+        private readonly MasterSettings _settings;
+        private Grpc.Core.Server _rpcServer;
 
-        public Master(int reduceTaskCount, List<string> inputFilePaths)
+        public Master(MasterSettings settings)
         {
+            _settings = settings;
             // build _mapTasks
-            foreach (var inputFilePath in inputFilePaths)
+            foreach (var inputFilePath in settings.InputFilePaths)
             {
                 _mapTasks.Add(new()
                 {
@@ -30,7 +37,7 @@ namespace MapReduce.Master.Helpers
             }
             // build _reduceTasks
             int i;
-            for (i = 0; i < reduceTaskCount; i++)
+            for (i = 0; i < settings.ReduceTaskCount; i++)
             {
                 _reduceTasks.Add(new()
                 {
@@ -39,11 +46,27 @@ namespace MapReduce.Master.Helpers
             }
         }
 
+        public void Start()
+        {
+            MapReduceController controller = new(this);
+            _rpcServer = new()
+            {
+                Services = { RpcMapReduceService.BindService(controller) },
+                Ports = { new ServerPort(_settings.IpAddress, _settings.Port, ServerCredentials.Insecure) }
+            };
+        }
+
+        public async Task StartWorkerHealthChecker()
+        {
+            
+        }
+
         public TaskInfoDto AssignTask(WorkerInfoDto workerInfoDto)
         {
             WorkerInfo workerInfo = _workers.Find(xxxx => xxxx.WorkerUuid == workerInfoDto.WorkerUuid);
             if (workerInfo == null)
             {
+                // the worker is not registered. Ignore.
                 return null;
             }
             _biggestTaskId++;
@@ -60,6 +83,8 @@ namespace MapReduce.Master.Helpers
                 MapTask mapTask = _mapTasks.First(xxxx => xxxx.Assignee == null);
                 mapTask.Assignee = workerInfo;
                 mapTask.TaskId = _biggestTaskId;
+                // assign the task to the worker
+                workerInfo.AssignedTask = mapTask;
                 // build DTO file info
                 FileInfoDto fileInfoDto = new()
                 {
@@ -77,6 +102,8 @@ namespace MapReduce.Master.Helpers
                 int partitionIndex = _reduceTasks.IndexOf(reduceTask);
                 reduceTask.Assignee = workerInfo;
                 reduceTask.TaskId = _biggestTaskId;
+                // assign the task to the worker
+                workerInfo.AssignedTask = reduceTask;
                 // assign partition
                 foreach (var mapTask in _mapTasks)
                 {
@@ -102,7 +129,6 @@ namespace MapReduce.Master.Helpers
             {
                 return null;
             }
-            workerInfo.State = WorkerStatus.InProgress;
 
             return taskInfoDto;
         }

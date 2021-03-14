@@ -15,25 +15,22 @@ namespace MapReduce.Master.Controllers
 
         public override Task<TaskInfoDto> AskForTask(WorkerInfoDto request, ServerCallContext context)
         {
-            throw new NotImplementedException();
+            return _master.AskForTaskAsync(request);
         }
 
         public override Task<Empty> HeartBeat(WorkerInfoDto request, ServerCallContext context)
         {
-
-
-
-            return Task.FromResult(new Empty());
+            return _master.HeartBeatAsync(request);
         }
 
         public override Task<Empty> MapDone(MapOutputInfoDto request, ServerCallContext context)
         {
-            return Task.FromResult(new Empty());
+            return _master.MapDoneAsync(request);
         }
 
         public override Task<Empty> ReduceDone(ReduceOutputInfoDto request, ServerCallContext context)
         {
-            return Task.FromResult(new Empty());
+            return _master.ReduceDoneAsync(request);
         }
     }
 }

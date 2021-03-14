@@ -1,6 +1,6 @@
 namespace MapReduce.Master.Models
 {
-    public enum WorkerStatus
+    public enum MapReduceTaskStatus
     {
         Idle,
         InProgress,
