@@ -131,7 +131,16 @@ namespace MapReduce.Master.Helpers
                     // assign workers with map tasks
                     taskInfoDto.TaskType = (int)MapReduceTaskType.Map;
                     // find unassigned task
-                    MapTask mapTask = _mapTasks.First(xxxx => !xxxx.IsTaskCompleted);
+                    MapTask mapTask = _mapTasks.Find(xxxx => !xxxx.IsTaskCompleted && xxxx.Assignee == null);
+                    if (mapTask == null)
+                    {
+                        // there is task not completed and those uncompleted tasks have already been assigned with some workers
+                        return new()
+                        {
+                            TaskType = (int)MapReduceTaskType.Nop,
+                            TaskId = _biggestTaskId
+                        };
+                    }
                     mapTask.Assignee = workerInfo;
                     mapTask.TaskId = _biggestTaskId;
                     // assign the task to the worker
@@ -152,7 +161,16 @@ namespace MapReduce.Master.Helpers
                     // assign workers with reduce tasks
                     taskInfoDto.TaskType = (int)MapReduceTaskType.Reduce;
                     // find unassigned task
-                    ReduceTask reduceTask = _reduceTasks.First(xxxx => !xxxx.IsTaskCompleted);
+                    ReduceTask reduceTask = _reduceTasks.Find(xxxx => !xxxx.IsTaskCompleted && xxxx.Assignee == null);
+                    if (reduceTask == null)
+                    {
+                        // there is task not completed and those uncompleted tasks have already been assigned with some workers
+                        return new()
+                        {
+                            TaskType = (int)MapReduceTaskType.Nop,
+                            TaskId = _biggestTaskId
+                        };
+                    }
                     int partitionIndex = _reduceTasks.IndexOf(reduceTask);
                     reduceTask.Assignee = workerInfo;
                     reduceTask.TaskId = _biggestTaskId;
