@@ -14,7 +14,8 @@ return list<(key, value)>
 ```
 
 -   [Interface](src/MapReduce.Worker/Helpers/IMapping.cs).
--   [Implementation](src/MapReduce.Worker/Helpers/WordCount.cs).
+-   [Implementation (WordCount)](src/MapReduce.Worker/Helpers/WordCount.cs).
+-   [Implementation (InvertedIndex)](src/MapReduce.Worker/Helpers/InvertedIndex.cs).
 
 `combine()`:
 
@@ -55,7 +56,8 @@ return hash<key, valueAggregated>
 ```
 
 -   [Interface](src/MapReduce.Worker/Helpers/IReducing.cs).
--   [Implementation](src/MapReduce.Worker/Helpers/WordCount.cs).
+-   [Implementation (WordCount)](src/MapReduce.Worker/Helpers/WordCount.cs).
+-   [Implementation (InvertedIndex)](src/MapReduce.Worker/Helpers/InvertedIndex.cs).
 
 ![](img/2021-03-09-16-21-13.png)
 
