@@ -21,7 +21,6 @@ namespace MapReduce.Worker.Helpers
         private readonly IPartitioning<TKey, TValue> _partitioningPhase;
         private readonly GrpcChannel _channel;
         private readonly System.Timers.Timer _heartBeatTicker;
-        private readonly RpcClientFactory _rpcClientFactory;
         public bool IsWorking { get; private set; }
 
         public Worker(
@@ -32,7 +31,6 @@ namespace MapReduce.Worker.Helpers
             IPartitioning<TKey, TValue> partitioningPhase)
         {
             _settings = settings;
-            _rpcClientFactory = rpcClientFactory;
             _mappingPhase = mappingPhase;
             _reducingPhase = reducingPhase;
             _partitioningPhase = partitioningPhase;
