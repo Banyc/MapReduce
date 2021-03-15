@@ -36,23 +36,23 @@ namespace MapReduce.Worker.Helpers
                 mappings = await _mappingPhase.MapAsync(fileStream).ConfigureAwait(false);
             }
 
-            // merge
-            Dictionary<TKey, List<TValue>> mappingsMerged = new();
+            // combine
+            Dictionary<TKey, List<TValue>> mappingsCombined = new();
 
             foreach (var mapping in mappings)
             {
-                if (mappingsMerged.ContainsKey(mapping.Item1))
+                if (mappingsCombined.ContainsKey(mapping.Item1))
                 {
-                    mappingsMerged[mapping.Item1].Add(mapping.Item2);
+                    mappingsCombined[mapping.Item1].Add(mapping.Item2);
                 }
                 else
                 {
-                    mappingsMerged[mapping.Item1] = new() { mapping.Item2 };
+                    mappingsCombined[mapping.Item1] = new() { mapping.Item2 };
                 }
             }
 
             // partition
-            var partitions = _partitioningPhase.Partition(mappingsMerged, numPartitions);
+            var partitions = _partitioningPhase.Partition(mappingsCombined, numPartitions);
             List<FileInfoDto> fileInfos = new();
 
             // save each partition to a file

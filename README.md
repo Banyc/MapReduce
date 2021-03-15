@@ -1,5 +1,9 @@
 # MapReduce
 
+-   Distributed systems.
+-   Object-oriented programming.
+-   Educational only.
+
 ## Principle
 
 `map()`:
@@ -8,6 +12,9 @@
 part of object -> list<(key, value)>
 return list<(key, value)>
 ```
+
+-   [Interface](src/MapReduce.Worker/Helpers/IMapping.cs).
+-   [Implementation](src/MapReduce.Worker/Helpers/WordCount.cs).
 
 `combine()`:
 
@@ -20,11 +27,16 @@ foreach ((key,value) in list<(key, value)>)
 return hash<key, list<value>>
 ```
 
+-   [Implementation](src/MapReduce.Worker/Helpers/Mapper.cs).
+
 `partition()`:
 
 ```text
 hash<partitionIndex, hash<key, list<value>>>
 ```
+
+-   [Interface](src/MapReduce.Worker/Helpers/IPartitioning.cs).
+-   [Implementation](src/MapReduce.Worker/Helpers/DefaultPartitioner.cs).
 
 `reduce()`:
 
@@ -42,6 +54,9 @@ foreach ((key,values) in hash<key, list<value>>)
 return hash<key, valueAggregated>
 ```
 
+-   [Interface](src/MapReduce.Worker/Helpers/IReducing.cs).
+-   [Implementation](src/MapReduce.Worker/Helpers/WordCount.cs).
+
 ![](img/2021-03-09-16-21-13.png)
 
 -   each intermediate file is a partition.
@@ -49,14 +64,18 @@ return hash<key, valueAggregated>
 
 ## Master Data Structure
 
--   `enum state { idle, in-progress, completed }`
-    -   idle: - task waiting to be scheduled. - the task is not done yet.
--   `class MapTask { state, CompletedFile, ... }`
--   `class ReduceTask { state, CompletedFile, ... }`
--   `class CompletedFile { location, size }`
--   `List<MapTask>`
--   `List<ReduceTask>`
--   `List<Worker>`
+-   `class master`
+    -   `List<MapTask>`
+    -   `List<ReduceTask>`
+    -   `List<Worker>`
+-   relative data structures
+    -   `enum state { idle, in-progress, completed }`
+        -   idle:
+            -   task waiting to be scheduled.
+            -   the task is not done yet.
+    -   `class MapTask { state, CompletedFile, ... }`
+    -   `class ReduceTask { state, CompletedFile, ... }`
+    -   `class CompletedFile { location, size }`
 
 ## Failure
 
