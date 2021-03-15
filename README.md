@@ -4,6 +4,30 @@
 -   Object-oriented programming.
 -   Educational only.
 
+## How to run
+
+1.  Run the workers:
+
+    ```
+    dotnet run -p src/MapReduce.Worker
+    ```
+
+1.  Run the master:
+
+    ```
+    dotnet run -p src/MapReduce.Master
+    ```
+
+... or in the reverse order.
+
+## How to use
+
+-   Example of master initiation: [`src/MapReduce.Master/Program.cs`](src/MapReduce.Master/Program.cs).
+-   Example of workers initiation: [`src/MapReduce.Worker/Program.cs`](src/MapReduce.Worker/Program.cs).
+-   Example of Custom `Map` and `Reduce` functions:
+    -   Word count - [`src/MapReduce.Worker/Helpers/WordCount.cs`](src/MapReduce.Worker/Helpers/WordCount.cs).
+    -   Inverted file index - [`src/MapReduce.Worker/Helpers/InvertedIndex.cs`](src/MapReduce.Worker/Helpers/InvertedIndex.cs).
+
 ## Principle
 
 `map()`:
