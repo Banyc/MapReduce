@@ -11,14 +11,14 @@ using MapReduce.Worker.Models;
 
 namespace MapReduce.Worker.Helpers
 {
-    public class Worker<TKey, TValue> : IDisposable
+    public class Worker<TKey, TValueIn, TValueOut> : IDisposable
     {
         private readonly WorkerInfoDto _workerInfoDto;
         private readonly WorkerSettings _settings;
 
-        private readonly IMapping<TKey, TValue> _mappingPhase;
-        private readonly IReducing<TKey, TValue> _reducingPhase;
-        private readonly IPartitioning<TKey, TValue> _partitioningPhase;
+        private readonly IMapping<TKey, TValueIn> _mappingPhase;
+        private readonly IReducing<TKey, TValueIn, TValueOut> _reducingPhase;
+        private readonly IPartitioning<TKey, TValueIn> _partitioningPhase;
         private readonly GrpcChannel _channel;
         private readonly System.Timers.Timer _heartBeatTicker;
         public bool IsWorking { get; private set; }
@@ -26,9 +26,9 @@ namespace MapReduce.Worker.Helpers
         public Worker(
             WorkerSettings settings,
             RpcClientFactory rpcClientFactory,
-            IMapping<TKey, TValue> mappingPhase,
-            IReducing<TKey, TValue> reducingPhase,
-            IPartitioning<TKey, TValue> partitioningPhase)
+            IMapping<TKey, TValueIn> mappingPhase,
+            IReducing<TKey, TValueIn, TValueOut> reducingPhase,
+            IPartitioning<TKey, TValueIn> partitioningPhase)
         {
             _settings = settings;
             _mappingPhase = mappingPhase;
@@ -106,7 +106,7 @@ namespace MapReduce.Worker.Helpers
                     switch ((MapReduceTaskType)taskInfoDto.TaskType)
                     {
                         case MapReduceTaskType.Map:
-                            Mapper<TKey, TValue> mapper = new(
+                            Mapper<TKey, TValueIn> mapper = new(
                                 mappingPhase: _mappingPhase,
                                 partitioningPhase: _partitioningPhase,
                                 rpcClient: rpcClient,
@@ -118,7 +118,7 @@ namespace MapReduce.Worker.Helpers
                             ).ConfigureAwait(false);
                             break;
                         case MapReduceTaskType.Reduce:
-                            Reducer<TKey, TValue> reducer = new(
+                            Reducer<TKey, TValueIn, TValueOut> reducer = new(
                                 reducingPhase: _reducingPhase,
                                 rpcClient: rpcClient,
                                 settings: _settings);

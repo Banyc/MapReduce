@@ -2,8 +2,8 @@ using System.Collections.Generic;
 
 namespace MapReduce.Worker.Helpers
 {
-    public interface IReducing<TKey, TValue>
+    public interface IReducing<TKey, TValueIn, TValueOut>
     {
-        TValue Reduce(TKey key, List<TValue> values);
+        TValueOut Reduce(TKey key, List<TValueIn> values);
     }
 }

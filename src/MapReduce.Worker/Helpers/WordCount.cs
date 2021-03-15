@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MapReduce.Worker.Helpers
 {
-    public class WordCount : IMapping<string, int>, IReducing<string, int>
+    public class WordCount : IMapping<string, int>, IReducing<string, int, int>
     {
         public async Task<IList<(string, int)>> MapAsync(FileStream inputFile)
         {

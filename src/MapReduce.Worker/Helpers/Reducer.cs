@@ -8,14 +8,14 @@ using MapReduce.Worker.Models;
 
 namespace MapReduce.Worker.Helpers
 {
-    public class Reducer<TKey, TValue>
+    public class Reducer<TKey, TValueIn, TValueOut>
     {
-        private readonly IReducing<TKey, TValue> _reducingPhase;
+        private readonly IReducing<TKey, TValueIn, TValueOut> _reducingPhase;
         private readonly RpcMapReduceService.RpcMapReduceServiceClient _rpcClient;
         private readonly WorkerSettings _settings;
 
         public Reducer(
-            IReducing<TKey, TValue> reducingPhase,
+            IReducing<TKey, TValueIn, TValueOut> reducingPhase,
             RpcMapReduceService.RpcMapReduceServiceClient rpcClient,
             WorkerSettings settings)
         {
@@ -24,18 +24,18 @@ namespace MapReduce.Worker.Helpers
             _settings = settings;
         }
 
-        private static async Task<Dictionary<TKey, List<TValue>>> ReadMappingsAsync(List<string> filePaths)
+        private static async Task<Dictionary<TKey, List<TValueIn>>> ReadMappingsAsync(List<string> filePaths)
         {
-            Dictionary<TKey, List<TValue>> mappings = new();
+            Dictionary<TKey, List<TValueIn>> mappings = new();
 
             foreach (var filePath in filePaths)
             {
                 using var fs = File.OpenRead(filePath);
                 using var sr = new StreamReader(fs);
 
-                Dictionary<TKey, List<TValue>> temp =
+                Dictionary<TKey, List<TValueIn>> temp =
                     await System.Text.Json.JsonSerializer
-                        .DeserializeAsync<Dictionary<TKey, List<TValue>>>(fs)
+                        .DeserializeAsync<Dictionary<TKey, List<TValueIn>>>(fs)
                         .ConfigureAwait(false);
 
                 foreach (var tempKeyValue in temp)
@@ -60,10 +60,10 @@ namespace MapReduce.Worker.Helpers
             var mappings = await ReadMappingsAsync(intermediateFilePaths).ConfigureAwait(false);
 
             // reduce
-            Dictionary<TKey, TValue> reduced = new();
+            Dictionary<TKey, TValueOut> reduced = new();
             foreach (var keyValues in mappings)
             {
-                TValue reducedValue = _reducingPhase.Reduce(keyValues.Key, keyValues.Value);
+                TValueOut reducedValue = _reducingPhase.Reduce(keyValues.Key, keyValues.Value);
                 reduced[keyValues.Key] = reducedValue;
             }
 
