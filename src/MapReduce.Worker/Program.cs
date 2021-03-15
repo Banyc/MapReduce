@@ -27,7 +27,7 @@ namespace MapReduce.Worker
 
             const int numWorkers = 12;
 
-            List<Helpers.Worker<string, List<object>, List<List<object>>>> workers = new();
+            List<Helpers.Worker<string, List<object>, Dictionary<string, List<int>>>> workers = new();
             List<Task> tasks = new();
 
             try
@@ -35,7 +35,7 @@ namespace MapReduce.Worker
                 int i;
                 for (i = 0; i < numWorkers; i++)
                 {
-                    Helpers.Worker<string, List<object>, List<List<object>>> worker = new(
+                    Helpers.Worker<string, List<object>, Dictionary<string, List<int>>> worker = new(
                         settings: new()
                         {
                             WorkerUuid = Guid.NewGuid().ToString(),
