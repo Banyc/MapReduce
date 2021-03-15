@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "MapReduce.Shared";
 
-package RpcMapReduce;
+package mapReduce.shared.rpcMapReduce;
 
 // workers -> master
 
