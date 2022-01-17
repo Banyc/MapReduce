@@ -12,11 +12,11 @@ dotnet run -p src/MapReduce.Sample
 
 ## How to use
 
--   Example of master initiation: [`src/MapReduce.Master/Program.cs`](src/MapReduce.Master/Program.cs).
--   Example of workers initiation: [`src/MapReduce.Worker/Program.cs`](src/MapReduce.Worker/Program.cs).
+-   Example of master initiation: [`src/MapReduce.Sample/Program.cs`](src/MapReduce.Sample/Program.cs).
+-   Example of workers initiation: [`src/MapReduce.Sample/Playbook/WorkerHelper.cs`](src/MapReduce.Sample/Playbook/WorkerHelper.cs).
 -   Example of Custom `Map` and `Reduce` functions:
-    -   Word count - [`src/MapReduce.Worker/Helpers/WordCount.cs`](src/MapReduce.Worker/Helpers/WordCount.cs).
-    -   Inverted file index - [`src/MapReduce.Worker/Helpers/InvertedIndex.cs`](src/MapReduce.Worker/Helpers/InvertedIndex.cs).
+    -   Word count - [`src/MapReduce.Sample/Playbook/WordCount.cs`](src/MapReduce.Sample/Playbook/WordCount.cs).
+    -   Inverted file index - [`src/MapReduce.Sample/Playbook/InvertedIndex.cs`](src/MapReduce.Sample/Playbook/InvertedIndex.cs).
 
 ## Principle
 
@@ -28,8 +28,8 @@ return list<(key, value)>
 ```
 
 -   [Interface](src/MapReduce.Worker/Helpers/IMapping.cs).
--   [Implementation (WordCount)](src/MapReduce.Worker/Helpers/WordCount.cs).
--   [Implementation (InvertedIndex)](src/MapReduce.Worker/Helpers/InvertedIndex.cs).
+-   [Implementation (WordCount)](src/MapReduce.Sample/Playbook/WordCount.cs).
+-   [Implementation (InvertedIndex)](src/MapReduce.Sample/Playbook/InvertedIndex.cs).
 
 `combine()`:
 
@@ -70,8 +70,8 @@ return hash<key, valueAggregated>
 ```
 
 -   [Interface](src/MapReduce.Worker/Helpers/IReducing.cs).
--   [Implementation (WordCount)](src/MapReduce.Worker/Helpers/WordCount.cs).
--   [Implementation (InvertedIndex)](src/MapReduce.Worker/Helpers/InvertedIndex.cs).
+-   [Implementation (WordCount)](src/MapReduce.Sample/Playbook/WordCount.cs).
+-   [Implementation (InvertedIndex)](src/MapReduce.Sample/Playbook/InvertedIndex.cs).
 
 ![](img/2021-03-09-16-21-13.png)
 
