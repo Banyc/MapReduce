@@ -5,43 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Master",
+            "name": "Sample",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build_Master",
-            "program": "${workspaceFolder}/src/MapReduce.Master/bin/Debug/net5.0/MapReduce.Master.dll",
+            "preLaunchTask": "build_Sample",
+            "program": "${workspaceFolder}/src/MapReduce.Sample/bin/Debug/net6.0/MapReduce.Sample.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/src/MapReduce.Master",
+            "cwd": "${workspaceFolder}/src/MapReduce.Sample",
             "console": "integratedTerminal",
             "stopAtEntry": false,
             "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "name": "Worker",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build_Worker",
-            "program": "${workspaceFolder}/src/MapReduce.Worker/bin/Debug/net5.0/MapReduce.Worker.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/src/MapReduce.Worker",
-            "console": "integratedTerminal",
-            "stopAtEntry": false,
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach",
-            "processId": "${command:pickProcess}"
-        }
-    ],
-    "compounds": [
-        {
-            "name": "Compound",
-            "configurations": [
-                "Master",
-                "Worker"
-            ]
         }
     ]
 }

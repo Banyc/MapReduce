@@ -6,19 +6,9 @@
 
 ## How to run
 
-1.  Run the workers:
-
-    ```
-    dotnet run -p src/MapReduce.Worker
-    ```
-
-1.  Run the master:
-
-    ```
-    dotnet run -p src/MapReduce.Master
-    ```
-
-... or in the reverse order.
+```bash
+dotnet run -p src/MapReduce.Sample
+```
 
 ## How to use
 

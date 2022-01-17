@@ -2,8 +2,9 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MapReduce.Worker.Helpers;
 
-namespace MapReduce.Worker.Helpers
+namespace MapReduce.Sample.Playbook
 {
     public class WordCount : IMapping<string, int>, IReducing<string, int, int>
     {

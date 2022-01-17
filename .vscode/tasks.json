@@ -2,24 +2,12 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build_Master",
+            "label": "build_Sample",
             "command": "dotnet",
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/src/MapReduce.Master/MapReduce.Master.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
-            ],
-            "problemMatcher": "$msCompile"
-        },
-        {
-            "label": "build_Worker",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "build",
-                "${workspaceFolder}/src/MapReduce.Worker/MapReduce.Worker.csproj",
+                "${workspaceFolder}/src/MapReduce.Sample/MapReduce.Sample.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using MapReduce.Worker.Helpers;
 
-namespace MapReduce.Worker.Helpers
+namespace MapReduce.Sample.Playbook
 {
     public class InvertedIndex : IMapping<string, List<object>>, IReducing<string, List<object>, Dictionary<string, List<int>>>
     {
