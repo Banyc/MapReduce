@@ -61,7 +61,7 @@ namespace MapReduce.Master.Helpers
             };
         }
 
-        public async Task<List<SimpleFileInfo>> StartAsync(CancellationToken cancelToken)
+        public async Task<List<SimpleFileInfo>> MapreduceAsync(CancellationToken cancelToken)
         {
             // activate controller
             _rpcServer.Start();
@@ -90,7 +90,7 @@ namespace MapReduce.Master.Helpers
                             for (i = _workers.Count - 1; i >= 0; i--)
                             {
                                 var worker = _workers[i];
-                                if (DateTime.UtcNow - worker.LastHeartBeatTime > TimeSpan.FromSeconds(10))
+                                if (DateTime.UtcNow - worker.LastHeartbeatTime > TimeSpan.FromSeconds(10))
                                 {
                                     if (worker.AssignedTask != null)
                                     {

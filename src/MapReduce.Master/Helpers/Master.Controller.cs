@@ -14,7 +14,7 @@ namespace MapReduce.Master.Helpers
             return Task.FromResult(this.AssignTask(request));
         }
 
-        public Task<Empty> HeartBeatAsync(WorkerInfoDto request)
+        public Task<Empty> HeartbeatAsync(WorkerInfoDto request)
         {
             Console.WriteLine($"[info] {request.WorkerUuid}: Heartbeat.");
             lock (_workers)
@@ -24,13 +24,13 @@ namespace MapReduce.Master.Helpers
                 {
                     _workers.Add(new()
                     {
-                        LastHeartBeatTime = DateTime.UtcNow,
+                        LastHeartbeatTime = DateTime.UtcNow,
                         WorkerUuid = request.WorkerUuid
                     });
                 }
                 else
                 {
-                    worker.LastHeartBeatTime = DateTime.UtcNow;
+                    worker.LastHeartbeatTime = DateTime.UtcNow;
                 }
             }
             return Task.FromResult(new Empty());

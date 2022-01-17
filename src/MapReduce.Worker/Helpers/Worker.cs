@@ -43,7 +43,7 @@ namespace MapReduce.Worker.Helpers
             {
                 Interval = TimeSpan.FromSeconds(4).TotalMilliseconds
             };
-            StartHeartBeat();
+            StartHeartbeat();
         }
 
         public void Dispose()
@@ -52,16 +52,16 @@ namespace MapReduce.Worker.Helpers
             _channel.Dispose();
         }
 
-        public void StartHeartBeat()
+        public void StartHeartbeat()
         {
             // heart beats
-            var rpcClientHeartBeat = RpcClientFactory.CreateRpcClient(_channel);
+            var rpcClientHeartbeat = RpcClientFactory.CreateRpcClient(_channel);
 
-            _heartBeatTicker.Elapsed += (object sender, ElapsedEventArgs e) => _ = SendHeartBeatAsync(rpcClientHeartBeat);
+            _heartBeatTicker.Elapsed += (object sender, ElapsedEventArgs e) => _ = SendHeartbeatAsync(rpcClientHeartbeat);
             _heartBeatTicker.Start();
         }
 
-        public async Task StartAsync(CancellationToken cancelToken)
+        public async Task RunAsync(CancellationToken cancelToken)
         {
             // worker tasks
             if (this.IsWorking)
@@ -83,12 +83,12 @@ namespace MapReduce.Worker.Helpers
             }
         }
 
-        private async Task SendHeartBeatAsync(
+        private async Task SendHeartbeatAsync(
             RpcMapReduceService.RpcMapReduceServiceClient rpcClient)
         {
             try
             {
-                _ = await rpcClient.HeartBeatAsync(_workerInfoDto);
+                _ = await rpcClient.HeartbeatAsync(_workerInfoDto);
             }
             catch (RpcException) { }
         }

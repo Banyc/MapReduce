@@ -50,7 +50,7 @@ namespace MapReduce.Worker
 
                     CancellationTokenSource cancelToken = new();
 
-                    Task task = worker.StartAsync(cancelToken.Token);
+                    Task task = worker.RunAsync(cancelToken.Token);
 
                     workers.Add(worker);
                     tasks.Add(task);
@@ -106,7 +106,7 @@ namespace MapReduce.Worker
 
                     CancellationTokenSource cancelToken = new();
 
-                    Task task = worker.StartAsync(cancelToken.Token);
+                    Task task = worker.RunAsync(cancelToken.Token);
 
                     workers.Add(worker);
                     tasks.Add(task);

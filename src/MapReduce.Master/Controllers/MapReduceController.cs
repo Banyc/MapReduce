@@ -18,9 +18,9 @@ namespace MapReduce.Master.Controllers
             return _master.AskForTaskAsync(request);
         }
 
-        public override Task<Empty> HeartBeat(WorkerInfoDto request, ServerCallContext context)
+        public override Task<Empty> Heartbeat(WorkerInfoDto request, ServerCallContext context)
         {
-            return _master.HeartBeatAsync(request);
+            return _master.HeartbeatAsync(request);
         }
 
         public override Task<Empty> MapDone(MapOutputInfoDto request, ServerCallContext context)

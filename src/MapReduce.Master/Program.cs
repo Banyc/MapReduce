@@ -26,7 +26,7 @@ namespace MapReduce.Master
 
             CancellationTokenSource cancelToken = new();
 
-            var masterTask = master.StartAsync(cancelToken.Token);
+            var masterTask = master.MapreduceAsync(cancelToken.Token);
 
             // Console.WriteLine("Press any key to stop master.");
             // Console.ReadKey();
@@ -36,11 +36,11 @@ namespace MapReduce.Master
 
             try
             {
-                var simpleFileInfos = await masterTask.ConfigureAwait(false);
+                var mapreducedFiles = await masterTask.ConfigureAwait(false);
                 Console.WriteLine("[info] Reduced outputs are:");
-                foreach (var simpleFileInfo in simpleFileInfos)
+                foreach (var mapreducedFile in mapreducedFiles)
                 {
-                    Console.WriteLine($"[info] {simpleFileInfo.FilePath}");
+                    Console.WriteLine($"[info] {mapreducedFile.FilePath}");
                 }
             }
             catch (TaskCanceledException) { }

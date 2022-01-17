@@ -12,7 +12,7 @@ service RpcMapReduceService {
     rpc MapDone (MapOutputInfoDto) returns (Empty);
     rpc ReduceDone (ReduceOutputInfoDto) returns (Empty);
     // send current state to master
-    rpc HeartBeat (WorkerInfoDto) returns (Empty);
+    rpc Heartbeat (WorkerInfoDto) returns (Empty);
 }
 
 message WorkerInfoDto {
